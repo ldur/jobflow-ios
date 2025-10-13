@@ -19,13 +19,13 @@ The iOS project has been successfully moved from `kindred-flow-graph/KindredFlow
 
 ## 🚀 How to Open the Project
 
-### Quick Open
+### Quick Open (Recommended)
 ```bash
 cd ~/Documents/jobflow
-open Package.swift
+open JobFlow.xcodeproj
 ```
 
-Or simply navigate to `~/Documents/jobflow` in Finder and double-click `Package.swift`.
+Or simply navigate to `~/Documents/jobflow` in Finder and double-click `JobFlow.xcodeproj`.
 
 ### With Setup Guidance
 ```bash
@@ -70,10 +70,17 @@ Before building and running:
 
 ## 🔨 Build and Run
 
-1. Open project in Xcode: `open ~/Documents/jobflow/Package.swift`
-2. Select a simulator device (e.g., iPhone 15)
-3. Select your development team in Signing & Capabilities
-4. Press ⌘+R to build and run
+1. Open project in Xcode: `open ~/Documents/jobflow/JobFlow.xcodeproj`
+2. Wait for Swift Package dependencies to resolve (automatic)
+3. Select a simulator device (e.g., iPhone 15)
+4. Select your development team in Signing & Capabilities tab
+5. Press ⌘+R to build and run
+
+You should now see the proper Xcode project with:
+- ✅ Project navigator with your source files
+- ✅ Project settings and build configurations
+- ✅ Proper Xcode project icon
+- ✅ Build schemes and targets
 
 ## 📚 Documentation
 

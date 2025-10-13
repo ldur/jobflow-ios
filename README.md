@@ -39,24 +39,18 @@ SUPABASE_ANON_KEY = your_supabase_anon_key
 
 ### 3. Open in Xcode
 
-You can open this project in Xcode in two ways:
-
-**Option A: Double-click to open**
-```bash
-open ~/Documents/jobflow/Package.swift
-```
-
-**Option B: Run the setup script**
+**Open the Xcode project:**
 ```bash
 cd ~/Documents/jobflow
-./create_xcode_project.sh
+open JobFlow.xcodeproj
 ```
 
-This will guide you through creating a proper Xcode project and configuring your credentials.
+Or simply double-click `JobFlow.xcodeproj` in Finder.
 
 Once opened:
 1. Select your development team in the Signing & Capabilities tab
-2. Build and run the project
+2. Choose a simulator device (e.g., iPhone 15)
+3. Press ⌘+R to build and run the project
 
 ## Project Structure
 

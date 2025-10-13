@@ -4,18 +4,18 @@ This guide will help you open the JobFlow iOS project in Xcode.
 
 ## Quick Start
 
-### Option 1: Direct Open (Recommended)
+### Open the Xcode Project (Recommended)
 
-Simply double-click the `Package.swift` file or run:
+Simply double-click `JobFlow.xcodeproj` in Finder or run:
 
 ```bash
 cd ~/Documents/jobflow
-open Package.swift
+open JobFlow.xcodeproj
 ```
 
-Xcode will automatically open the project and resolve dependencies.
+Xcode will automatically open the project and resolve all Swift Package dependencies.
 
-### Option 2: Using the Setup Script
+### Using the Setup Script (Alternative)
 
 For a guided setup with configuration help:
 
