@@ -39,9 +39,24 @@ SUPABASE_ANON_KEY = your_supabase_anon_key
 
 ### 3. Open in Xcode
 
-1. Open `KindredFlowGraphiOS.xcodeproj` in Xcode
-2. Select your development team in the Signing & Capabilities tab
-3. Build and run the project
+You can open this project in Xcode in two ways:
+
+**Option A: Double-click to open**
+```bash
+open ~/Documents/jobflow/Package.swift
+```
+
+**Option B: Run the setup script**
+```bash
+cd ~/Documents/jobflow
+./create_xcode_project.sh
+```
+
+This will guide you through creating a proper Xcode project and configuring your credentials.
+
+Once opened:
+1. Select your development team in the Signing & Capabilities tab
+2. Build and run the project
 
 ## Project Structure
 
