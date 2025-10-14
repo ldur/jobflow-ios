@@ -1,6 +1,6 @@
 //
 //  JobDetailViewModel.swift
-//  KindredFlowGraphiOS
+//  JobFlow
 //
 //  ViewModel for job detail view
 //
@@ -50,7 +50,7 @@ class JobDetailViewModel: ObservableObject {
         let newStatus = action.isCompleted ? "pending" : "completed"
         
         // Validate strict sequence if needed
-        if newStatus == "completed", let job = job, job.strictSequence {
+        if newStatus == "completed", let job = job, job.strictSequence == true {
             let incompletePrevious = jobActions.contains { otherAction in
                 otherAction.sequenceOrder < action.sequenceOrder && !otherAction.isCompleted
             }
@@ -72,7 +72,7 @@ class JobDetailViewModel: ObservableObject {
             
             // Update local state
             if let index = jobActions.firstIndex(where: { $0.id == action.id }) {
-                var updatedAction = jobActions[index]
+                let updatedAction = jobActions[index]
                 jobActions[index] = JobActionInstance(
                     id: updatedAction.id,
                     jobId: updatedAction.jobId,
@@ -109,7 +109,7 @@ class JobDetailViewModel: ObservableObject {
             
             // Update local state
             if let index = jobActions.firstIndex(where: { $0.id == action.id }) {
-                var updatedAction = jobActions[index]
+                let updatedAction = jobActions[index]
                 jobActions[index] = JobActionInstance(
                     id: updatedAction.id,
                     jobId: updatedAction.jobId,
@@ -146,7 +146,7 @@ class JobDetailViewModel: ObservableObject {
     }
     
     func canCompleteActionInSequence(_ action: JobActionInstance) -> Bool {
-        guard let job = job, job.strictSequence else {
+        guard let job = job, job.strictSequence == true else {
             return true
         }
         

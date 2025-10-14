@@ -4,28 +4,28 @@
 import PackageDescription
 
 let package = Package(
-    name: "KindredFlowGraphiOS",
+    name: "JobFlow",
     platforms: [
         .iOS(.v16)
     ],
     products: [
         .library(
-            name: "KindredFlowGraphiOS",
-            targets: ["KindredFlowGraphiOS"])
+            name: "JobFlow",
+            targets: ["JobFlow"])
     ],
     dependencies: [
         .package(url: "https://github.com/supabase/supabase-swift.git", from: "2.0.0")
     ],
     targets: [
         .target(
-            name: "KindredFlowGraphiOS",
+            name: "JobFlow",
             dependencies: [
                 .product(name: "Supabase", package: "supabase-swift")
             ]
         ),
         .testTarget(
-            name: "KindredFlowGraphiOSTests",
-            dependencies: ["KindredFlowGraphiOS"]
+            name: "JobFlowTests",
+            dependencies: ["JobFlow"]
         )
     ]
 )

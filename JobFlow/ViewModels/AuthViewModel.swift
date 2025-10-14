@@ -1,6 +1,6 @@
 //
 //  AuthViewModel.swift
-//  KindredFlowGraphiOS
+//  JobFlow
 //
 //  ViewModel for authentication
 //

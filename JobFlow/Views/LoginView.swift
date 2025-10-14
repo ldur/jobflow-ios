@@ -1,6 +1,6 @@
 //
 //  LoginView.swift
-//  KindredFlowGraphiOS
+//  JobFlow
 //
 //  Login screen with email/password authentication
 //

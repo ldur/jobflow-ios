@@ -1,6 +1,6 @@
 //
-//  KindredFlowGraphiOSApp.swift
-//  KindredFlowGraphiOS
+//  JobFlowApp.swift
+//  JobFlow
 //
 //  Main app entry point
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct KindredFlowGraphiOSApp: App {
+struct JobFlowApp: App {
     @StateObject private var supabaseService = SupabaseService.shared
     
     var body: some Scene {

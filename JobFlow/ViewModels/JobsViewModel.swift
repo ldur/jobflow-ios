@@ -1,6 +1,6 @@
 //
 //  JobsViewModel.swift
-//  KindredFlowGraphiOS
+//  JobFlow
 //
 //  ViewModel for jobs list
 //
@@ -28,13 +28,19 @@ class JobsViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
+        print("📱 JobsViewModel: Starting to load jobs...")
+        
         do {
             jobs = try await supabaseService.fetchJobs()
+            print("📱 JobsViewModel: Loaded \(jobs.count) jobs successfully")
         } catch {
+            print("📱 JobsViewModel: Error loading jobs - \(error)")
             errorMessage = error.localizedDescription
+            print("📱 JobsViewModel: Error message set to: \(error.localizedDescription)")
         }
         
         isLoading = false
+        print("📱 JobsViewModel: Loading complete. Jobs count: \(jobs.count)")
     }
     
     func refreshJobs() async {

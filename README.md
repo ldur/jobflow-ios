@@ -55,7 +55,7 @@ Once opened:
 ## Project Structure
 
 ```
-KindredFlowGraphiOS/
+JobFlow/
 ├── Models/              # Data models matching Supabase schema
 ├── Services/            # API and business logic services
 ├── Views/              # SwiftUI views
@@ -113,7 +113,7 @@ The app connects to your existing Supabase backend. Key endpoints:
 
 Run tests with:
 ```bash
-xcodebuild test -scheme KindredFlowGraphiOS -destination 'platform=iOS Simulator,name=iPhone 15'
+xcodebuild test -scheme JobFlow -destination 'platform=iOS Simulator,name=iPhone 15'
 ```
 
 ## Troubleshooting

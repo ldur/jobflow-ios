@@ -1,6 +1,6 @@
 //
 //  SupabaseService.swift
-//  KindredFlowGraphiOS
+//  JobFlow
 //
 //  Service layer for Supabase integration
 //
@@ -16,13 +16,13 @@ class SupabaseService: ObservableObject {
     @Published var isAuthenticated = false
     
     private init() {
-        // Initialize Supabase client with your credentials
-        // In production, store these in a secure configuration file
-        guard let supabaseURL = ProcessInfo.processInfo.environment["SUPABASE_URL"],
-              let supabaseKey = ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"],
-              let url = URL(string: supabaseURL) else {
-            fatalError("Missing Supabase configuration. Please set SUPABASE_URL and SUPABASE_ANON_KEY environment variables.")
+        // Initialize Supabase client with your credentials from Config
+        // These values are loaded from Config.xcconfig
+        guard let url = URL(string: Config.supabaseURL) else {
+            fatalError("Invalid Supabase URL. Please ensure Config.xcconfig is properly set up with a valid SUPABASE_URL.")
         }
+        
+        let supabaseKey = Config.supabaseAnonKey
         
         client = SupabaseClient(
             supabaseURL: url,
@@ -38,13 +38,17 @@ class SupabaseService: ObservableObject {
     // MARK: - Authentication
     
     func checkSession() async {
+        print("🔐 Checking session...")
         do {
             let session = try await client.auth.session
             await MainActor.run {
                 self.currentUser = session.user
                 self.isAuthenticated = true
+                print("🔐 Session valid. User ID: \(session.user.id)")
+                print("🔐 User email: \(session.user.email ?? "no email")")
             }
         } catch {
+            print("🔐 No valid session found: \(error)")
             await MainActor.run {
                 self.currentUser = nil
                 self.isAuthenticated = false
@@ -68,7 +72,7 @@ class SupabaseService: ObservableObject {
         let session = try await client.auth.signUp(
             email: email,
             password: password,
-            data: fullName.map { ["full_name": $0] }
+            data: fullName.map { ["full_name": AnyJSON.string($0)] }
         )
         
         await MainActor.run {
@@ -94,44 +98,85 @@ class SupabaseService: ObservableObject {
     
     func fetchJobs() async throws -> [Job] {
         guard let userId = currentUser?.id.uuidString else {
+            print("❌ No current user found")
             throw NSError(domain: "SupabaseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
         }
         
-        let response: [Job] = try await client
-            .from("jobs")
-            .select("""
-                *,
-                process_templates(name, description),
-                profiles(full_name)
-            """)
-            .eq("assigned_to", value: userId)
-            .order("created_at", ascending: false)
-            .execute()
-            .value
+        print("✅ Fetching jobs for user ID: \(userId)")
         
-        return response
+        do {
+            // Try with embedded resources first
+            let response: [Job] = try await client
+                .from("jobs")
+                .select("""
+                    *,
+                    process_templates(name, description),
+                    profiles(full_name),
+                    job_action_instances(*)
+                """)
+                .eq("assigned_to", value: userId)
+                .order("created_at", ascending: false)
+                .execute()
+                .value
+            
+            print("✅ Successfully fetched \(response.count) jobs with actions")
+            for job in response {
+                print("  - Job: \(job.name), Actions: \(job.actions?.count ?? 0)")
+            }
+            return response
+        } catch {
+            print("❌ Error fetching jobs with relations: \(error)")
+            
+            // Fallback: Try without relations
+            print("🔄 Trying to fetch jobs without relations...")
+            do {
+                let response: [Job] = try await client
+                    .from("jobs")
+                    .select("*")
+                    .eq("assigned_to", value: userId)
+                    .order("created_at", ascending: false)
+                    .execute()
+                    .value
+                
+                print("✅ Successfully fetched \(response.count) jobs (without relations)")
+                return response
+            } catch {
+                print("❌ Error fetching jobs without relations: \(error)")
+                throw error
+            }
+        }
     }
     
     func fetchJobById(_ jobId: String) async throws -> Job {
-        let response: Job = try await client
-            .from("jobs")
-            .select("""
-                *,
-                process_templates(name, description),
-                profiles(full_name)
-            """)
-            .eq("id", value: jobId)
-            .single()
-            .execute()
-            .value
-        
-        return response
+        do {
+            let response: [Job] = try await client
+                .from("jobs")
+                .select("""
+                    *,
+                    process_templates(name, description),
+                    profiles(full_name),
+                    job_action_instances(*)
+                """)
+                .eq("id", value: jobId)
+                .execute()
+                .value
+            
+            guard let job = response.first else {
+                throw NSError(domain: "SupabaseService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Job not found"])
+            }
+            
+            print("✅ Fetched job: \(job.name) with \(job.actions?.count ?? 0) actions")
+            return job
+        } catch {
+            print("❌ Error fetching job by ID: \(error)")
+            throw error
+        }
     }
     
     func updateJobStatus(jobId: String, status: String, completedAt: String? = nil) async throws {
-        var updateData: [String: Any] = ["status": status]
+        var updateData: [String: AnyJSON] = ["status": .string(status)]
         if let completedAt = completedAt {
-            updateData["completed_at"] = completedAt
+            updateData["completed_at"] = .string(completedAt)
         }
         
         try await client
@@ -156,16 +201,16 @@ class SupabaseService: ObservableObject {
     }
     
     func updateJobAction(actionId: String, status: String? = nil, notes: String? = nil, completedAt: String? = nil) async throws {
-        var updateData: [String: Any] = [:]
+        var updateData: [String: AnyJSON] = [:]
         
         if let status = status {
-            updateData["status"] = status
+            updateData["status"] = .string(status)
         }
         if let notes = notes {
-            updateData["notes"] = notes
+            updateData["notes"] = .string(notes)
         }
         if let completedAt = completedAt {
-            updateData["completed_at"] = completedAt
+            updateData["completed_at"] = .string(completedAt)
         }
         
         try await client
@@ -250,15 +295,34 @@ class SupabaseService: ObservableObject {
             return nil
         }
         
-        let response: Profile = try await client
-            .from("profiles")
-            .select("*")
-            .eq("id", value: userId)
-            .single()
-            .execute()
-            .value
+        do {
+            let response: [Profile] = try await client
+                .from("profiles")
+                .select("*")
+                .eq("id", value: userId)
+                .execute()
+                .value
+            
+            return response.first
+        } catch {
+            // If profile doesn't exist, return nil instead of throwing
+            print("Profile fetch error: \(error)")
+            return nil
+        }
+    }
+    
+    func updateProfile(userId: String, fullName: String?, email: String) async throws {
+        var updateData: [String: AnyJSON] = ["email": .string(email)]
         
-        return response
+        if let fullName = fullName {
+            updateData["full_name"] = .string(fullName)
+        }
+        
+        try await client
+            .from("profiles")
+            .update(updateData)
+            .eq("id", value: userId)
+            .execute()
     }
     
     // MARK: - User Roles
@@ -268,15 +332,20 @@ class SupabaseService: ObservableObject {
             return nil
         }
         
-        let response: UserRole = try await client
-            .from("user_roles")
-            .select("*")
-            .eq("user_id", value: userId)
-            .single()
-            .execute()
-            .value
-        
-        return response
+        do {
+            let response: [UserRole] = try await client
+                .from("user_roles")
+                .select("*")
+                .eq("user_id", value: userId)
+                .execute()
+                .value
+            
+            return response.first
+        } catch {
+            // If user role doesn't exist, return nil instead of throwing
+            print("User role fetch error: \(error)")
+            return nil
+        }
     }
 }
 

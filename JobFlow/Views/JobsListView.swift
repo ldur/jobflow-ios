@@ -1,6 +1,6 @@
 //
 //  JobsListView.swift
-//  KindredFlowGraphiOS
+//  JobFlow
 //
 //  List view for all jobs assigned to user
 //
@@ -10,6 +10,9 @@ import SwiftUI
 struct JobsListView: View {
     @StateObject private var viewModel = JobsViewModel()
     @StateObject private var authViewModel = AuthViewModel()
+    @State private var showingProfile = false
+    @State private var selectedJob: Job?
+    @State private var selectedJobForCardView: Job?
     
     var body: some View {
         NavigationView {
@@ -29,14 +32,24 @@ struct JobsListView: View {
                         Button {
                             viewModel.selectedStatus = nil
                         } label: {
-                            Label("All Jobs", systemImage: viewModel.selectedStatus == nil ? "checkmark" : "")
+                            HStack {
+                                if viewModel.selectedStatus == nil {
+                                    Image(systemName: "checkmark")
+                                }
+                                Text("All Jobs")
+                            }
                         }
                         
                         ForEach(JobStatus.allCases, id: \.self) { status in
                             Button {
                                 viewModel.selectedStatus = status
                             } label: {
-                                Label(status.displayName, systemImage: viewModel.selectedStatus == status ? "checkmark" : "")
+                                HStack {
+                                    if viewModel.selectedStatus == status {
+                                        Image(systemName: "checkmark")
+                                    }
+                                    Text(status.displayName)
+                                }
                             }
                         }
                     } label: {
@@ -46,11 +59,9 @@ struct JobsListView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        Task {
-                            await authViewModel.signOut()
-                        }
+                        showingProfile = true
                     } label: {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        Label("Profile", systemImage: "person.circle")
                     }
                 }
             }
@@ -59,6 +70,33 @@ struct JobsListView: View {
             }
             .task {
                 await viewModel.loadJobs()
+            }
+            .sheet(isPresented: $showingProfile) {
+                ProfileView()
+            }
+            .sheet(item: $selectedJob) { job in
+                NavigationView {
+                    JobDetailView(jobId: job.id)
+                }
+            }
+            .onChange(of: selectedJob) { newValue in
+                // Refresh jobs when detail view is closed
+                if newValue == nil {
+                    Task {
+                        await viewModel.refreshJobs()
+                    }
+                }
+            }
+            .fullScreenCover(item: $selectedJobForCardView) { job in
+                CardFlowView(jobId: job.id, jobName: job.name)
+            }
+            .onChange(of: selectedJobForCardView) { newValue in
+                // Refresh jobs when card view is closed
+                if newValue == nil {
+                    Task {
+                        await viewModel.refreshJobs()
+                    }
+                }
             }
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") {
@@ -77,9 +115,11 @@ struct JobsListView: View {
             if let selectedStatus = viewModel.selectedStatus {
                 Section {
                     ForEach(viewModel.filteredJobs) { job in
-                        NavigationLink(destination: JobDetailView(jobId: job.id)) {
-                            JobRowView(job: job)
-                        }
+                        JobRowView(
+                            job: job,
+                            onListViewTap: { selectedJob = job },
+                            onCardViewTap: { selectedJobForCardView = job }
+                        )
                     }
                 } header: {
                     Text("\(selectedStatus.displayName) Jobs")
@@ -90,9 +130,11 @@ struct JobsListView: View {
                     if !jobsForStatus.isEmpty {
                         Section {
                             ForEach(jobsForStatus) { job in
-                                NavigationLink(destination: JobDetailView(jobId: job.id)) {
-                                    JobRowView(job: job)
-                                }
+                                JobRowView(
+                                    job: job,
+                                    onListViewTap: { selectedJob = job },
+                                    onCardViewTap: { selectedJobForCardView = job }
+                                )
                             }
                         } header: {
                             Text(status.displayName)
@@ -137,9 +179,11 @@ struct JobsListView: View {
 
 struct JobRowView: View {
     let job: Job
+    let onListViewTap: () -> Void
+    let onCardViewTap: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(job.name)
                     .font(.headline)
@@ -176,6 +220,41 @@ struct JobRowView: View {
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+                
+                Spacer()
+            }
+            
+            // View mode buttons
+            HStack(spacing: 12) {
+                Button(action: onListViewTap) {
+                    HStack {
+                        Image(systemName: "list.bullet")
+                        Text("List View")
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+                
+                Button(action: onCardViewTap) {
+                    HStack {
+                        Image(systemName: "square.stack.3d.up.fill")
+                        Text("Card View")
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color.purple)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
             }
         }
         .padding(.vertical, 4)

@@ -1,6 +1,6 @@
 //
 //  Job.swift
-//  KindredFlowGraphiOS
+//  JobFlow
 //
 //  Database models matching Supabase schema
 //
@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - Job Model
-struct Job: Codable, Identifiable {
+struct Job: Codable, Identifiable, Hashable {
     let id: String
     let name: String
     let status: String?
@@ -17,12 +17,21 @@ struct Job: Codable, Identifiable {
     let scheduledDate: String?
     let completedAt: String?
     let createdAt: String?
-    let strictSequence: Bool
+    let strictSequence: Bool?
     
     // Relations
     var processTemplate: ProcessTemplate?
     var profile: Profile?
     var actions: [JobActionInstance]?
+    
+    // Hashable conformance
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Job, rhs: Job) -> Bool {
+        lhs.id == rhs.id
+    }
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -36,7 +45,7 @@ struct Job: Codable, Identifiable {
         case strictSequence = "strict_sequence"
         case processTemplate = "process_templates"
         case profile = "profiles"
-        case actions
+        case actions = "job_action_instances"
     }
     
     var statusEnum: JobStatus {
@@ -76,7 +85,7 @@ enum JobStatus: String, Codable, CaseIterable {
 }
 
 // MARK: - Job Action Instance Model
-struct JobActionInstance: Codable, Identifiable {
+struct JobActionInstance: Codable, Identifiable, Hashable {
     let id: String
     let jobId: String
     let name: String
@@ -105,11 +114,11 @@ struct JobActionInstance: Codable, Identifiable {
 }
 
 // MARK: - Process Template Model
-struct ProcessTemplate: Codable, Identifiable {
-    let id: String
+struct ProcessTemplate: Codable, Identifiable, Hashable {
+    let id: String?
     let name: String
     let description: String?
-    let createdBy: String
+    let createdBy: String?
     let createdAt: String?
     let updatedAt: String?
     
@@ -124,9 +133,9 @@ struct ProcessTemplate: Codable, Identifiable {
 }
 
 // MARK: - Profile Model
-struct Profile: Codable, Identifiable {
-    let id: String
-    let email: String
+struct Profile: Codable, Identifiable, Hashable {
+    let id: String?
+    let email: String?
     let fullName: String?
     let createdAt: String?
     let updatedAt: String?

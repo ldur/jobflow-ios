@@ -1,6 +1,6 @@
 //
 //  JobDetailView.swift
-//  KindredFlowGraphiOS
+//  JobFlow
 //
 //  Detailed view for a single job with actions
 //

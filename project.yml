@@ -24,11 +24,11 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: KindredFlowGraphiOS
+      - path: JobFlow
         name: JobFlow
         type: group
     info:
-      path: KindredFlowGraphiOS/Resources/Info.plist
+      path: JobFlow/Resources/Info.plist
       properties:
         CFBundleDisplayName: JobFlow
         CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
@@ -65,11 +65,17 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_VERSION: "5.9"
         ENABLE_PREVIEWS: true
-        INFOPLIST_FILE: KindredFlowGraphiOS/Resources/Info.plist
+        INFOPLIST_FILE: JobFlow/Resources/Info.plist
         DEVELOPMENT_ASSET_PATHS: ""
         CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "Apple Development"
+        DEVELOPMENT_TEAM: "5YA5U25PAV"
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 1.0
         GENERATE_INFOPLIST_FILE: false
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: true
+        SUPABASE_URL: $(SUPABASE_URL)
+        SUPABASE_ANON_KEY: $(SUPABASE_ANON_KEY)
+
 
