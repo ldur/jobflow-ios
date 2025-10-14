@@ -258,9 +258,9 @@ struct JobRowView: View {
                                         .fill(action.isCompleted ? Color.green.opacity(0.2) : Color.blue.opacity(0.2))
                                         .frame(width: 40, height: 30)
                                         .overlay(
-                                            Image(systemName: action.isCompleted ? "checkmark" : "play.fill")
+                                            Image(systemName: action.isCompleted ? "checkmark" : "circle")
                                                 .font(.caption2)
-                                                .foregroundColor(action.isCompleted ? .green : .blue)
+                                                .foregroundColor(action.isCompleted ? .green : .red)
                                         )
                                     
                                     Text("\(index + 1)")
