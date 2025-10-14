@@ -209,6 +209,12 @@ struct ActionCardView: View {
                             .foregroundColor(.secondary)
                     }
                     
+                    // Text-to-speech button for this action
+                    TextToSpeechButton(
+                        text: buildActionSpeechText(action: action, stepNumber: stepNumber),
+                        style: .compact
+                    )
+                    
                     if let completedAt = action.completedAt {
                         Text("Completed: \(formatDate(completedAt))")
                             .font(.caption2)
@@ -302,6 +308,26 @@ struct ActionCardView: View {
         displayFormatter.dateStyle = .medium
         displayFormatter.timeStyle = .short
         return displayFormatter.string(from: date)
+    }
+    
+    private func buildActionSpeechText(action: JobActionInstance, stepNumber: Int) -> String {
+        var speechText = "Step \(stepNumber): \(action.name)"
+        
+        if let description = action.description, !description.isEmpty {
+            speechText += ". \(description)"
+        }
+        
+        speechText += ". Status: \(action.isCompleted ? "Completed" : "Pending")"
+        
+        if let notes = action.notes, !notes.isEmpty {
+            speechText += ". Notes: \(notes)"
+        }
+        
+        if let completedAt = action.completedAt {
+            speechText += ". Completed on \(formatDate(completedAt))"
+        }
+        
+        return speechText
     }
 }
 
