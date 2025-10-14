@@ -148,7 +148,11 @@ class SpeechToTextService: NSObject, ObservableObject {
 extension SpeechToTextService {
     func checkPermissions() async -> Bool {
         // Check microphone permission
-        let microphoneStatus = await AVAudioSession.sharedInstance().requestRecordPermission()
+        let microphoneStatus = await withCheckedContinuation { continuation in
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                continuation.resume(returning: granted)
+            }
+        }
         
         // Check speech recognition permission
         let speechStatus = await withCheckedContinuation { continuation in
