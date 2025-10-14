@@ -213,6 +213,25 @@ struct CardFlowView: View {
                         .padding(.horizontal)
                 }
                 
+                // Media files
+                if let media = viewModel.actionMedia[card.actionName], !media.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Image(systemName: "photo.on.rectangle")
+                            Text("Media Files")
+                                .fontWeight(.semibold)
+                            Spacer()
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal)
+                        
+                        ForEach(media) { mediaItem in
+                            InlineMediaView(media: mediaItem)
+                                .padding(.horizontal)
+                        }
+                    }
+                }
+                
                 Divider()
                     .padding(.horizontal)
                 

@@ -11,6 +11,7 @@ import Combine
 @MainActor
 class CardFlowViewModel: ObservableObject {
     @Published var allActivities: [ActivityCard] = []
+    @Published var actionMedia: [String: [ActionMedia]] = [:]
     @Published var currentIndex = 0
     @Published var isLoading = false
     @Published var errorMessage: String?
@@ -71,6 +72,12 @@ class CardFlowViewModel: ObservableObject {
             
             // Sort by sequence order
             allActivities = cards.sorted { $0.sequenceOrder < $1.sequenceOrder }
+            
+            // Load media for actions
+            if !allActivities.isEmpty {
+                let actionNames = allActivities.map { $0.actionName }
+                actionMedia = try await supabaseService.fetchActionMedia(actionNames: actionNames)
+            }
             
             // Set initial index to first incomplete activity
             if let firstIncompleteIndex = allActivities.firstIndex(where: { !$0.isCompleted }) {

@@ -182,6 +182,8 @@ struct JobRowView: View {
     let onListViewTap: () -> Void
     let onCardViewTap: () -> Void
     
+
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -222,6 +224,63 @@ struct JobRowView: View {
                 }
                 
                 Spacer()
+            }
+            
+            // Media preview section
+            if let actions = job.actions, !actions.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "photo.on.rectangle")
+                            .font(.caption)
+                        Text("Actions with Media")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Text("\(actions.count) steps")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    .foregroundColor(.blue)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(Array(actions.prefix(5).enumerated()), id: \.element.id) { index, action in
+                                VStack(spacing: 4) {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(action.isCompleted ? Color.green.opacity(0.2) : Color.blue.opacity(0.2))
+                                        .frame(width: 40, height: 30)
+                                        .overlay(
+                                            Image(systemName: action.isCompleted ? "checkmark" : "play.fill")
+                                                .font(.caption2)
+                                                .foregroundColor(action.isCompleted ? .green : .blue)
+                                        )
+                                    
+                                    Text("\(index + 1)")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            if actions.count > 5 {
+                                VStack(spacing: 4) {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(width: 40, height: 30)
+                                        .overlay(
+                                            Text("+\(actions.count - 5)")
+                                                .font(.caption2)
+                                                .foregroundColor(.gray)
+                                        )
+                                    
+                                    Text("more")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 2)
+                    }
+                }
             }
             
             // View mode buttons
