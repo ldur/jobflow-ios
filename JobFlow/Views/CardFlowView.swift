@@ -249,6 +249,7 @@ struct CardFlowView: View {
                         Text("Notes")
                             .fontWeight(.semibold)
                         Spacer()
+                        SpeechToTextButton(text: $notesText, placeholder: "Add notes...")
                     }
                     .foregroundColor(.secondary)
                     

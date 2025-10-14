@@ -251,10 +251,16 @@ struct ActionCardView: View {
             
             // Notes
             VStack(alignment: .leading, spacing: 8) {
-                Text("Notes")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
+                HStack {
+                    Text("Notes")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    SpeechToTextButton(text: $notesText, placeholder: "Add notes...")
+                }
                 
                 TextEditor(text: $notesText)
                     .frame(height: 80)
