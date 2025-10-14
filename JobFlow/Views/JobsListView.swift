@@ -187,8 +187,16 @@ struct JobRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(job.name)
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(job.name)
+                        .font(.headline)
+                    
+                    // Text-to-speech button for job
+                    TextToSpeechButton(
+                        text: buildJobSpeechText(for: job),
+                        style: .compact
+                    )
+                }
                 
                 Spacer()
                 
@@ -338,6 +346,27 @@ struct JobRowView: View {
         case .completed: return .green
         case .cancelled: return .gray
         }
+    }
+    
+    private func buildJobSpeechText(for job: Job) -> String {
+        var speechText = "Job: \(job.name)"
+        
+        if let templateName = job.processTemplate?.name {
+            speechText += ". Template: \(templateName)"
+        }
+        
+        if let description = job.processTemplate?.description {
+            speechText += ". \(description)"
+        }
+        
+        speechText += ". Status: \(job.statusEnum.displayName)"
+        
+        if let actions = job.actions {
+            let completedCount = actions.filter { $0.isCompleted }.count
+            speechText += ". Progress: \(completedCount) of \(actions.count) actions completed"
+        }
+        
+        return speechText
     }
 }
 

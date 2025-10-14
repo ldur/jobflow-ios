@@ -204,6 +204,13 @@ struct CardFlowView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
+                // Text-to-speech button for action name and description
+                TextToSpeechButton(
+                    text: buildSpeechText(for: card),
+                    style: .full
+                )
+                .padding(.horizontal)
+                
                 // Description
                 if let description = card.description {
                     Text(description)
@@ -353,6 +360,22 @@ struct CardFlowView: View {
                 .multilineTextAlignment(.center)
         }
         .padding()
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func buildSpeechText(for card: ActivityCard) -> String {
+        var speechText = "Step \(card.sequenceOrder): \(card.actionName)"
+        
+        if let description = card.description, !description.isEmpty {
+            speechText += ". \(description)"
+        }
+        
+        if let notes = card.notes, !notes.isEmpty {
+            speechText += ". Notes: \(notes)"
+        }
+        
+        return speechText
     }
     
     // MARK: - Swipe Handler
