@@ -163,8 +163,7 @@ struct ActionCardView: View {
     let onCompleteJobHere: () -> Void
     
     @State private var notesText: String
-    @State private var showMediaViewer = false
-    @State private var selectedMedia: ActionMedia?
+
     
     init(action: JobActionInstance, stepNumber: Int, media: [ActionMedia], canComplete: Bool, isStrictSequence: Bool, hasSubsequentActions: Bool, onToggle: @escaping () -> Void, onNotesUpdate: @escaping (String) -> Void, onCompleteJobHere: @escaping () -> Void) {
         self.action = action
@@ -232,22 +231,14 @@ struct ActionCardView: View {
             
             // Media
             if !media.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text("Media Files")
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundColor(.secondary)
                     
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(media) { mediaItem in
-                                MediaThumbnailView(media: mediaItem)
-                                    .onTapGesture {
-                                        selectedMedia = mediaItem
-                                        showMediaViewer = true
-                                    }
-                            }
-                        }
+                    ForEach(media) { mediaItem in
+                        InlineMediaView(media: mediaItem)
                     }
                 }
             }
@@ -298,9 +289,7 @@ struct ActionCardView: View {
                 .stroke(action.isCompleted ? Color.green.opacity(0.2) : Color.gray.opacity(0.1), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.03), radius: 3, x: 0, y: 1)
-        .sheet(item: $selectedMedia) { media in
-            MediaViewerView(media: media)
-        }
+
     }
     
     private func formatDate(_ dateString: String) -> String {
@@ -316,123 +305,7 @@ struct ActionCardView: View {
     }
 }
 
-struct MediaThumbnailView: View {
-    let media: ActionMedia
-    
-    var body: some View {
-        ZStack {
-            if media.isImage {
-                AsyncImage(url: URL(string: media.mediaUrl)) { phase in
-                    switch phase {
-                    case .empty:
-                        ProgressView()
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    case .failure:
-                        Image(systemName: "photo")
-                            .foregroundColor(.gray)
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
-            } else if media.isVideo {
-                ZStack {
-                    Color.gray.opacity(0.3)
-                    Image(systemName: "play.circle.fill")
-                        .font(.title)
-                        .foregroundColor(.white)
-                }
-            } else if media.isAudio {
-                ZStack {
-                    Color.blue.opacity(0.2)
-                    Image(systemName: "music.note")
-                        .font(.title)
-                        .foregroundColor(.blue)
-                }
-            } else {
-                ZStack {
-                    Color.gray.opacity(0.2)
-                    Image(systemName: "doc")
-                        .font(.title)
-                        .foregroundColor(.gray)
-                }
-            }
-        }
-        .frame(width: 100, height: 100)
-        .cornerRadius(8)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        )
-    }
-}
 
-struct MediaViewerView: View {
-    let media: ActionMedia
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                if media.isImage {
-                    AsyncImage(url: URL(string: media.mediaUrl)) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                        case .failure:
-                            VStack {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.white)
-                                Text("Failed to load image")
-                                    .foregroundColor(.white)
-                            }
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                } else {
-                    Link(destination: URL(string: media.mediaUrl)!) {
-                        VStack(spacing: 20) {
-                            Image(systemName: media.isVideo ? "play.circle" : media.isAudio ? "music.note" : "doc")
-                                .font(.system(size: 60))
-                                .foregroundColor(.white)
-                            
-                            Text("Open in Browser")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            
-                            Text(media.mediaUrl)
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                        }
-                    }
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.white)
-                    }
-                }
-            }
-        }
-    }
-}
 
 #Preview {
     JobDetailView(jobId: "test-id")
