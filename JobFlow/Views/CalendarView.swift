@@ -122,12 +122,11 @@ struct DailyCalendarView: View {
     
     private var dayJobs: [Job] {
         jobs.filter { job in
-            guard let scheduledDate = job.scheduledDate else { return false }
-            return Calendar.current.isDate(parseDate(scheduledDate), inSameDayAs: selectedDate)
+            guard job.scheduledDate != nil else { return false }
+            return Calendar.current.isDate(job.scheduledDateAsDate, inSameDayAs: selectedDate)
         }
         .sorted { job1, job2 in
-            guard let date1 = job1.scheduledDate, let date2 = job2.scheduledDate else { return false }
-            return parseDate(date1) < parseDate(date2)
+            return job1.scheduledDateAsDate < job2.scheduledDateAsDate
         }
     }
     
@@ -193,10 +192,7 @@ struct DailyCalendarView: View {
         }
     }
     
-    private func parseDate(_ dateString: String) -> Date {
-        let formatter = ISO8601DateFormatter()
-        return formatter.date(from: dateString) ?? Date()
-    }
+
 }
 
 // MARK: - Weekly Calendar View
@@ -277,18 +273,12 @@ struct WeeklyCalendarView: View {
     
     private func jobsForDate(_ date: Date) -> [Job] {
         jobs.filter { job in
-            guard let scheduledDate = job.scheduledDate else { return false }
-            return Calendar.current.isDate(parseDate(scheduledDate), inSameDayAs: date)
+            guard job.scheduledDate != nil else { return false }
+            return Calendar.current.isDate(job.scheduledDateAsDate, inSameDayAs: date)
         }
         .sorted { job1, job2 in
-            guard let date1 = job1.scheduledDate, let date2 = job2.scheduledDate else { return false }
-            return parseDate(date1) < parseDate(date2)
+            return job1.scheduledDateAsDate < job2.scheduledDateAsDate
         }
-    }
-    
-    private func parseDate(_ dateString: String) -> Date {
-        let formatter = ISO8601DateFormatter()
-        return formatter.date(from: dateString) ?? Date()
     }
 }
 
@@ -376,18 +366,12 @@ struct MonthlyCalendarView: View {
     
     private func jobsForDate(_ date: Date) -> [Job] {
         jobs.filter { job in
-            guard let scheduledDate = job.scheduledDate else { return false }
-            return Calendar.current.isDate(parseDate(scheduledDate), inSameDayAs: date)
+            guard job.scheduledDate != nil else { return false }
+            return Calendar.current.isDate(job.scheduledDateAsDate, inSameDayAs: date)
         }
         .sorted { job1, job2 in
-            guard let date1 = job1.scheduledDate, let date2 = job2.scheduledDate else { return false }
-            return parseDate(date1) < parseDate(date2)
+            return job1.scheduledDateAsDate < job2.scheduledDateAsDate
         }
-    }
-    
-    private func parseDate(_ dateString: String) -> Date {
-        let formatter = ISO8601DateFormatter()
-        return formatter.date(from: dateString) ?? Date()
     }
 }
 

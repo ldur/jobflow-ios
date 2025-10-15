@@ -57,6 +57,46 @@ struct Job: Codable, Identifiable, Hashable {
         let completedCount = actions.filter { $0.status == "completed" }.count
         return Double(completedCount) / Double(actions.count)
     }
+    
+    var scheduledDateAsDate: Date {
+        guard let scheduledDate = scheduledDate else {
+            return Date.distantFuture // Jobs without scheduled dates go to the end
+        }
+        
+        // Try multiple date formats
+        let formatters = [
+            ISO8601DateFormatter(),
+            {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
+                return formatter
+            }(),
+            {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+                return formatter
+            }(),
+            {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                return formatter
+            }(),
+            {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                return formatter
+            }()
+        ]
+        
+        for formatter in formatters {
+            if let date = formatter.date(from: scheduledDate) {
+                return date
+            }
+        }
+        
+        print("⚠️ Could not parse scheduled date: \(scheduledDate)")
+        return Date.distantFuture
+    }
 }
 
 enum JobStatus: String, Codable, CaseIterable {
