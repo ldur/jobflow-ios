@@ -42,19 +42,40 @@ class JobsViewModel: ObservableObject {
         
         do {
             let fetchedJobs = try await supabaseService.fetchJobs()
+            
+            // Debug: Print job dates before sorting
+            print("📱 JobsViewModel: Jobs before sorting:")
+            for job in fetchedJobs {
+                print("  - \(job.name): scheduled=\(job.scheduledDate ?? "nil"), created=\(job.createdAt ?? "nil")")
+            }
+            
             jobs = fetchedJobs.sorted { job1, job2 in
                 // Sort by scheduled date ascending, with nil dates at the end
                 switch (job1.scheduledDate, job2.scheduledDate) {
                 case (nil, nil):
+                    // Both nil: sort by created date as fallback
+                    if let created1 = job1.createdAt, let created2 = job2.createdAt {
+                        return parseDate(created1) < parseDate(created2)
+                    }
                     return false
                 case (nil, _):
-                    return false
+                    return false  // job1 has nil date, goes to end
                 case (_, nil):
-                    return true
+                    return true   // job2 has nil date, job1 comes first
                 case (let date1?, let date2?):
-                    return parseDate(date1) < parseDate(date2)
+                    let parsedDate1 = parseDate(date1)
+                    let parsedDate2 = parseDate(date2)
+                    print("📱 Comparing dates: \(date1) (\(parsedDate1)) vs \(date2) (\(parsedDate2))")
+                    return parsedDate1 < parsedDate2
                 }
             }
+            
+            // Debug: Print job dates after sorting
+            print("📱 JobsViewModel: Jobs after sorting:")
+            for job in jobs {
+                print("  - \(job.name): scheduled=\(job.scheduledDate ?? "nil")")
+            }
+            
             print("📱 JobsViewModel: Loaded \(jobs.count) jobs successfully")
         } catch {
             print("📱 JobsViewModel: Error loading jobs - \(error)")

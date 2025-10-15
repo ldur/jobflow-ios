@@ -115,7 +115,6 @@ class SupabaseService: ObservableObject {
                     job_action_instances(*)
                 """)
                 .eq("assigned_to", value: userId)
-                .order("created_at", ascending: false)
                 .execute()
                 .value
             
@@ -134,7 +133,6 @@ class SupabaseService: ObservableObject {
                     .from("jobs")
                     .select("*")
                     .eq("assigned_to", value: userId)
-                    .order("created_at", ascending: false)
                     .execute()
                     .value
                 
