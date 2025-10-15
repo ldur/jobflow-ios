@@ -289,7 +289,16 @@ struct JobRowView: View {
                     
                     Spacer()
                     
-                    JobStatusBadge(status: job.statusEnum)
+                    // Scheduled date
+                    if let scheduledDate = job.scheduledDate {
+                        HStack(spacing: 4) {
+                            Image(systemName: "calendar")
+                                .font(.caption2)
+                            Text(formatDate(scheduledDate))
+                                .font(.caption2)
+                        }
+                        .foregroundColor(.secondary)
+                    }
                 }
             }
             
@@ -329,6 +338,18 @@ struct JobRowView: View {
         case .completed: return .green
         case .cancelled: return .gray
         }
+    }
+    
+    private func formatDate(_ dateString: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        guard let date = formatter.date(from: dateString) else {
+            return dateString
+        }
+        
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateStyle = .short
+        displayFormatter.timeStyle = .none
+        return displayFormatter.string(from: date)
     }
     
     private func buildJobSpeechText(for job: Job) -> String {
