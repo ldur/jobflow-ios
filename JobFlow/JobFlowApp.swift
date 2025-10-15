@@ -25,10 +25,28 @@ struct ContentView: View {
     var body: some View {
         Group {
             if supabaseService.isAuthenticated {
-                JobsListView()
+                MainTabView()
             } else {
                 LoginView()
             }
+        }
+    }
+}
+
+struct MainTabView: View {
+    var body: some View {
+        TabView {
+            JobsListView()
+                .tabItem {
+                    Image(systemName: "list.bullet.clipboard")
+                    Text("Jobs")
+                }
+            
+            CalendarView()
+                .tabItem {
+                    Image(systemName: "calendar")
+                    Text("Calendar")
+                }
         }
     }
 }
