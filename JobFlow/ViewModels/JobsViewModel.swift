@@ -18,10 +18,20 @@ class JobsViewModel: ObservableObject {
     private let supabaseService = SupabaseService.shared
     
     var filteredJobs: [Job] {
-        guard let selectedStatus = selectedStatus else {
-            return jobs
+        let filtered = selectedStatus != nil ? jobs.filter { $0.statusEnum == selectedStatus } : jobs
+        return filtered.sorted { job1, job2 in
+            // Sort by scheduled date ascending, with nil dates at the end
+            switch (job1.scheduledDate, job2.scheduledDate) {
+            case (nil, nil):
+                return false
+            case (nil, _):
+                return false
+            case (_, nil):
+                return true
+            case (let date1?, let date2?):
+                return parseDate(date1) < parseDate(date2)
+            }
         }
-        return jobs.filter { $0.statusEnum == selectedStatus }
     }
     
     func loadJobs() async {
@@ -31,7 +41,20 @@ class JobsViewModel: ObservableObject {
         print("📱 JobsViewModel: Starting to load jobs...")
         
         do {
-            jobs = try await supabaseService.fetchJobs()
+            let fetchedJobs = try await supabaseService.fetchJobs()
+            jobs = fetchedJobs.sorted { job1, job2 in
+                // Sort by scheduled date ascending, with nil dates at the end
+                switch (job1.scheduledDate, job2.scheduledDate) {
+                case (nil, nil):
+                    return false
+                case (nil, _):
+                    return false
+                case (_, nil):
+                    return true
+                case (let date1?, let date2?):
+                    return parseDate(date1) < parseDate(date2)
+                }
+            }
             print("📱 JobsViewModel: Loaded \(jobs.count) jobs successfully")
         } catch {
             print("📱 JobsViewModel: Error loading jobs - \(error)")
@@ -45,6 +68,11 @@ class JobsViewModel: ObservableObject {
     
     func refreshJobs() async {
         await loadJobs()
+    }
+    
+    private func parseDate(_ dateString: String) -> Date {
+        let formatter = ISO8601DateFormatter()
+        return formatter.date(from: dateString) ?? Date()
     }
 }
 

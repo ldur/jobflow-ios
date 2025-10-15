@@ -125,6 +125,10 @@ struct DailyCalendarView: View {
             guard let scheduledDate = job.scheduledDate else { return false }
             return Calendar.current.isDate(parseDate(scheduledDate), inSameDayAs: selectedDate)
         }
+        .sorted { job1, job2 in
+            guard let date1 = job1.scheduledDate, let date2 = job2.scheduledDate else { return false }
+            return parseDate(date1) < parseDate(date2)
+        }
     }
     
     var body: some View {
@@ -276,6 +280,10 @@ struct WeeklyCalendarView: View {
             guard let scheduledDate = job.scheduledDate else { return false }
             return Calendar.current.isDate(parseDate(scheduledDate), inSameDayAs: date)
         }
+        .sorted { job1, job2 in
+            guard let date1 = job1.scheduledDate, let date2 = job2.scheduledDate else { return false }
+            return parseDate(date1) < parseDate(date2)
+        }
     }
     
     private func parseDate(_ dateString: String) -> Date {
@@ -370,6 +378,10 @@ struct MonthlyCalendarView: View {
         jobs.filter { job in
             guard let scheduledDate = job.scheduledDate else { return false }
             return Calendar.current.isDate(parseDate(scheduledDate), inSameDayAs: date)
+        }
+        .sorted { job1, job2 in
+            guard let date1 = job1.scheduledDate, let date2 = job2.scheduledDate else { return false }
+            return parseDate(date1) < parseDate(date2)
         }
     }
     
