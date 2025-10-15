@@ -7,12 +7,32 @@
 
 import SwiftUI
 
+enum JobViewMode: CaseIterable {
+    case list
+    case card
+    
+    var icon: String {
+        switch self {
+        case .list: return "list.bullet"
+        case .card: return "square.grid.2x2"
+        }
+    }
+    
+    var title: String {
+        switch self {
+        case .list: return "List"
+        case .card: return "Cards"
+        }
+    }
+}
+
 struct JobsListView: View {
     @StateObject private var viewModel = JobsViewModel()
     @StateObject private var authViewModel = AuthViewModel()
     @State private var showingProfile = false
     @State private var selectedJob: Job?
     @State private var selectedJobForCardView: Job?
+    @State private var viewMode: JobViewMode = .list
     
     var body: some View {
         NavigationView {
@@ -22,7 +42,11 @@ struct JobsListView: View {
                 } else if viewModel.jobs.isEmpty {
                     emptyStateView
                 } else {
-                    jobsListView
+                    if viewMode == .list {
+                        jobsListView
+                    } else {
+                        jobsCardView
+                    }
                 }
             }
             .navigationTitle("My Jobs")
@@ -58,10 +82,22 @@ struct JobsListView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showingProfile = true
-                    } label: {
-                        Label("Profile", systemImage: "person.circle")
+                    HStack {
+                        // View mode toggle
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                viewMode = viewMode == .list ? .card : .list
+                            }
+                        } label: {
+                            Image(systemName: viewMode.icon)
+                                .foregroundColor(.blue)
+                        }
+                        
+                        Button {
+                            showingProfile = true
+                        } label: {
+                            Label("Profile", systemImage: "person.circle")
+                        }
                     }
                 }
             }
@@ -145,6 +181,24 @@ struct JobsListView: View {
         }
     }
     
+    private var jobsCardView: some View {
+        ScrollView {
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 16),
+                GridItem(.flexible(), spacing: 16)
+            ], spacing: 16) {
+                ForEach(viewModel.selectedStatus != nil ? viewModel.filteredJobs : viewModel.jobs) { job in
+                    JobCardView(
+                        job: job,
+                        onListViewTap: { selectedJob = job },
+                        onCardViewTap: { selectedJobForCardView = job }
+                    )
+                }
+            }
+            .padding()
+        }
+    }
+    
     private var emptyStateView: some View {
         VStack(spacing: 16) {
             Image(systemName: "tray")
@@ -182,161 +236,212 @@ struct JobRowView: View {
     let onListViewTap: () -> Void
     let onCardViewTap: () -> Void
     
-
-    
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(job.name)
-                        .font(.headline)
-                    
-                    // Text-to-speech button for job
-                    TextToSpeechButton(
-                        text: buildJobSpeechText(for: job),
-                        style: .compact
-                    )
-                }
-                
-                Spacer()
-                
-                JobStatusBadge(status: job.statusEnum)
-            }
+        HStack(spacing: 12) {
+            // Job status indicator
+            Circle()
+                .fill(statusColor(for: job.statusEnum))
+                .frame(width: 12, height: 12)
             
-            if let templateName = job.processTemplate?.name {
-                Text(templateName)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            if let scheduledDate = job.scheduledDate {
+            // Job info
+            VStack(alignment: .leading, spacing: 2) {
                 HStack {
-                    Image(systemName: "calendar")
-                        .font(.caption)
-                    Text(formatDate(scheduledDate))
-                        .font(.caption)
-                }
-                .foregroundColor(.secondary)
-            }
-            
-            // Progress bar
-            ProgressView(value: job.completionPercentage)
-                .tint(progressColor(for: job.statusEnum))
-            
-            HStack {
-                if let actions = job.actions {
-                    let completedCount = actions.filter { $0.isCompleted }.count
-                    Text("\(completedCount)/\(actions.count) actions completed")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-            }
-            
-            // Media preview section
-            if let actions = job.actions, !actions.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "photo.on.rectangle")
-                            .font(.caption)
-                        Text("Actions with Media")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                        Spacer()
-                        Text("\(actions.count) steps")
+                    Text(job.name)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    // Progress indicator
+                    if let actions = job.actions {
+                        let completedCount = actions.filter { $0.isCompleted }.count
+                        Text("\(completedCount)/\(actions.count)")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
-                    .foregroundColor(.blue)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(Array(actions.prefix(5).enumerated()), id: \.element.id) { index, action in
-                                VStack(spacing: 4) {
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(action.isCompleted ? Color.green.opacity(0.2) : Color.blue.opacity(0.2))
-                                        .frame(width: 40, height: 30)
-                                        .overlay(
-                                            Image(systemName: action.isCompleted ? "checkmark" : "circle")
-                                                .font(.caption2)
-                                                .foregroundColor(action.isCompleted ? .green : .red)
-                                        )
-                                    
-                                    Text("\(index + 1)")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            
-                            if actions.count > 5 {
-                                VStack(spacing: 4) {
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(Color.gray.opacity(0.2))
-                                        .frame(width: 40, height: 30)
-                                        .overlay(
-                                            Text("+\(actions.count - 5)")
-                                                .font(.caption2)
-                                                .foregroundColor(.gray)
-                                        )
-                                    
-                                    Text("more")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 2)
+                }
+                
+                HStack {
+                    if let templateName = job.processTemplate?.name {
+                        Text(templateName)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
                     }
+                    
+                    Spacer()
+                    
+                    JobStatusBadge(status: job.statusEnum)
                 }
             }
             
-            // View mode buttons
-            HStack(spacing: 12) {
+            // Action buttons
+            HStack(spacing: 8) {
+                // TTS button
+                TextToSpeechButton(
+                    text: buildJobSpeechText(for: job),
+                    style: .icon
+                )
+                
+                // Details button
                 Button(action: onListViewTap) {
-                    HStack {
-                        Image(systemName: "list.bullet")
-                        Text("List View")
+                    Image(systemName: "info.circle")
+                        .font(.title3)
+                        .foregroundColor(.blue)
+                }
+                .buttonStyle(.plain)
+                
+                // Start button
+                Button(action: onCardViewTap) {
+                    Image(systemName: "play.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.purple)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 4)
+    }
+    
+    private func statusColor(for status: JobStatus) -> Color {
+        switch status {
+        case .ready: return .blue
+        case .inProgress: return .orange
+        case .completed: return .green
+        case .cancelled: return .gray
+        }
+    }
+    
+    private func buildJobSpeechText(for job: Job) -> String {
+        var speechText = "Job: \(job.name)"
+        
+        if let templateName = job.processTemplate?.name {
+            speechText += ". Template: \(templateName)"
+        }
+        
+        if let description = job.processTemplate?.description {
+            speechText += ". \(description)"
+        }
+        
+        speechText += ". Status: \(job.statusEnum.displayName)"
+        
+        if let actions = job.actions {
+            let completedCount = actions.filter { $0.isCompleted }.count
+            speechText += ". Progress: \(completedCount) of \(actions.count) actions completed"
+        }
+        
+        return speechText
+    }
+}
+
+struct JobCardView: View {
+    let job: Job
+    let onListViewTap: () -> Void
+    let onCardViewTap: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header with status
+            HStack {
+                JobStatusBadge(status: job.statusEnum)
+                Spacer()
+                
+                // TTS button
+                TextToSpeechButton(
+                    text: buildJobSpeechText(for: job),
+                    style: .icon
+                )
+            }
+            
+            // Job name
+            Text(job.name)
+                .font(.headline)
+                .fontWeight(.bold)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+            
+            // Template name
+            if let templateName = job.processTemplate?.name {
+                Text(templateName)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+            
+            // Progress
+            VStack(alignment: .leading, spacing: 4) {
+                ProgressView(value: job.completionPercentage)
+                    .tint(progressColor(for: job.statusEnum))
+                
+                if let actions = job.actions {
+                    let completedCount = actions.filter { $0.isCompleted }.count
+                    Text("\(completedCount)/\(actions.count) completed")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            // Action indicators
+            if let actions = job.actions, !actions.isEmpty {
+                HStack(spacing: 4) {
+                    ForEach(Array(actions.prefix(6).enumerated()), id: \.element.id) { index, action in
+                        Circle()
+                            .fill(action.isCompleted ? Color.green : Color.red)
+                            .frame(width: 8, height: 8)
                     }
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    
+                    if actions.count > 6 {
+                        Text("+\(actions.count - 6)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                }
+            }
+            
+            Spacer()
+            
+            // Action buttons
+            HStack(spacing: 8) {
+                Button(action: onListViewTap) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "list.bullet")
+                            .font(.caption)
+                        Text("Details")
+                            .font(.caption)
+                    }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 8)
                     .background(Color.blue)
                     .foregroundColor(.white)
-                    .cornerRadius(8)
+                    .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
                 
                 Button(action: onCardViewTap) {
-                    HStack {
-                        Image(systemName: "square.stack.3d.up.fill")
-                        Text("Card View")
+                    HStack(spacing: 4) {
+                        Image(systemName: "play.fill")
+                            .font(.caption)
+                        Text("Start")
+                            .font(.caption)
                     }
-                    .font(.subheadline)
-                    .fontWeight(.medium)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 8)
                     .background(Color.purple)
                     .foregroundColor(.white)
-                    .cornerRadius(8)
+                    .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.vertical, 4)
-    }
-    
-    private func formatDate(_ dateString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        guard let date = formatter.date(from: dateString) else {
-            return dateString
-        }
-        
-        let displayFormatter = DateFormatter()
-        displayFormatter.dateStyle = .medium
-        displayFormatter.timeStyle = .none
-        return displayFormatter.string(from: date)
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .frame(height: 220)
     }
     
     private func progressColor(for status: JobStatus) -> Color {
