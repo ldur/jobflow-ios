@@ -18,19 +18,12 @@ class TextToSpeechService: NSObject, ObservableObject {
     override init() {
         super.init()
         synthesizer.delegate = self
-        setupAudioSession()
-    }
-    
-    private func setupAudioSession() {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch {
-            print("Failed to setup audio session: \(error)")
-        }
     }
     
     func speak(text: String, rate: Float = 0.5) {
+        // Configure audio session for playback
+        AudioSessionManager.shared.configureForPlayback()
+        
         // Stop any current speech
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)

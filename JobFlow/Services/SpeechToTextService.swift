@@ -60,15 +60,8 @@ class SpeechToTextService: NSObject, ObservableObject {
             self.recognitionTask = nil
         }
         
-        // Configure audio session
-        let audioSession = AVAudioSession.sharedInstance()
-        do {
-            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-        } catch {
-            errorMessage = "Audio session setup failed: \(error.localizedDescription)"
-            return
-        }
+        // Configure audio session for recording
+        AudioSessionManager.shared.configureForRecording()
         
         // Create recognition request
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
@@ -99,6 +92,9 @@ class SpeechToTextService: NSObject, ObservableObject {
                 
                 self?.recognitionRequest = nil
                 self?.recognitionTask = nil
+                
+                // Reset audio session to playback mode
+                AudioSessionManager.shared.resetToPlayback()
                 
                 DispatchQueue.main.async {
                     self?.isRecording = false
@@ -132,6 +128,9 @@ class SpeechToTextService: NSObject, ObservableObject {
     func stopRecording() {
         audioEngine.stop()
         recognitionRequest?.endAudio()
+        
+        // Reset audio session to playback mode
+        AudioSessionManager.shared.resetToPlayback()
         
         DispatchQueue.main.async {
             self.isRecording = false
