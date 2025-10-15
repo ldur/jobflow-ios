@@ -19,19 +19,8 @@ class JobsViewModel: ObservableObject {
     
     var filteredJobs: [Job] {
         let filtered = selectedStatus != nil ? jobs.filter { $0.statusEnum == selectedStatus } : jobs
-        return filtered.sorted { job1, job2 in
-            // Sort by scheduled date ascending, with nil dates at the end
-            switch (job1.scheduledDate, job2.scheduledDate) {
-            case (nil, nil):
-                return false
-            case (nil, _):
-                return false
-            case (_, nil):
-                return true
-            case (let date1?, let date2?):
-                return parseDate(date1) < parseDate(date2)
-            }
-        }
+        // Jobs are already sorted by scheduled date in loadJobs(), just return filtered
+        return filtered
     }
     
     func loadJobs() async {
@@ -92,8 +81,29 @@ class JobsViewModel: ObservableObject {
     }
     
     private func parseDate(_ dateString: String) -> Date {
-        let formatter = ISO8601DateFormatter()
-        return formatter.date(from: dateString) ?? Date()
+        // Try ISO8601 format first
+        let iso8601Formatter = ISO8601DateFormatter()
+        if let date = iso8601Formatter.date(from: dateString) {
+            return date
+        }
+        
+        // Try alternative formats
+        let dateFormatter = DateFormatter()
+        
+        // Try "yyyy-MM-dd HH:mm:ss" format
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        if let date = dateFormatter.date(from: dateString) {
+            return date
+        }
+        
+        // Try "yyyy-MM-dd" format
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        if let date = dateFormatter.date(from: dateString) {
+            return date
+        }
+        
+        print("⚠️ Could not parse date: \(dateString)")
+        return Date.distantFuture // Put unparseable dates at the end
     }
 }
 

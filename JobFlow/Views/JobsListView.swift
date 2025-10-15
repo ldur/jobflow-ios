@@ -162,7 +162,7 @@ struct JobsListView: View {
                 }
             } else {
                 ForEach(JobStatus.allCases, id: \.self) { status in
-                    let jobsForStatus = viewModel.jobs.filter { $0.statusEnum == status }
+                    let jobsForStatus = viewModel.filteredJobs.filter { $0.statusEnum == status }
                     if !jobsForStatus.isEmpty {
                         Section {
                             ForEach(jobsForStatus) { job in
@@ -197,7 +197,7 @@ struct JobsListView: View {
                 }
             } else {
                 ForEach(JobStatus.allCases, id: \.self) { status in
-                    let jobsForStatus = viewModel.jobs.filter { $0.statusEnum == status }
+                    let jobsForStatus = viewModel.filteredJobs.filter { $0.statusEnum == status }
                     if !jobsForStatus.isEmpty {
                         Section {
                             ForEach(jobsForStatus) { job in
