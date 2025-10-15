@@ -303,15 +303,15 @@ struct JobRowView: View {
                 
                 // Details button
                 Button(action: onListViewTap) {
-                    Image(systemName: "info.circle")
+                    Image(systemName: "list.bullet.rectangle")
                         .font(.title3)
                         .foregroundColor(.blue)
                 }
                 .buttonStyle(.plain)
                 
-                // Start button
+                // Card view button
                 Button(action: onCardViewTap) {
-                    Image(systemName: "play.circle.fill")
+                    Image(systemName: "rectangle.stack")
                         .font(.title3)
                         .foregroundColor(.purple)
                 }

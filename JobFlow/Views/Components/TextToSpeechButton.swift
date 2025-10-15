@@ -51,6 +51,7 @@ struct TextToSpeechButton: View {
         .padding(.vertical, 4)
         .background(Color.blue.opacity(0.1))
         .cornerRadius(6)
+        .contentShape(RoundedRectangle(cornerRadius: 6))
     }
     
     private var fullButton: some View {
@@ -72,9 +73,10 @@ struct TextToSpeechButton: View {
         Image(systemName: ttsService.isSpeakingText(text) ? "stop.circle.fill" : "speaker.wave.2.fill")
             .font(.title3)
             .foregroundColor(ttsService.isSpeakingText(text) ? .red : .blue)
-            .padding(8)
+            .frame(width: 32, height: 32)
             .background(Color(.systemGray6))
             .clipShape(Circle())
+            .contentShape(Circle())
     }
 }
 
